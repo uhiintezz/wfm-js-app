@@ -1,0 +1,51 @@
+import { apiService } from '../services/api.sevice'
+import Component from './../core/component'
+import { renderPost } from '../templates/post.template'
+
+export class FavoriteComponent extends Component {
+    constructor(id, {loader}) {
+        super(id)
+        this.loader = loader
+    }
+
+    init() {
+        this.$el.addEventListener('click', linkClickHandler.bind(this))
+
+    }
+
+    onShow() {
+        const favorites = JSON.parse(localStorage.getItem('favorites'))
+        const html = renderObject(favorites)
+        this.$el.insertAdjacentHTML('afterbegin', html)
+    }
+
+    onHide() {
+        this.$el.innerHTML = ''
+    }
+}
+
+async function linkClickHandler(event) {
+    event.preventDefault()
+
+    if (event.target.classList.contains('js-link')) {
+        this.loader.show()
+        const postId = event.target.textContent
+        this.$el.innerHTML = ''
+        const post = await apiService.fetchPostById(postId)
+        this.loader.hide()
+        console.log(post)
+        this.$el.insertAdjacentHTML('afterbegin', renderPost(post, {withButton: false}))
+    }
+}
+
+function renderObject(list = []) {
+    if (list && list.length) {
+        return `
+            <ul>
+            ${list.map(i => `<li><a href="#" class="js-link">${i}</a></li>`).join('')}
+            </ul>
+        `
+    }
+
+    return `<p class="center">Вы пока ничего не добавили</p>`
+}
